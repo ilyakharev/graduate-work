@@ -1,0 +1,29 @@
+name: lab
+
+topology:
+  nodes:
+    # сервер, который нету защищать
+    victim:
+      image: ilyakharev/graduate-lab:victim
+      kind: linux
+    # МСЭ, которым мы управляем
+    firewall:
+      image: ilyakharev/graduate-lab:firewall
+      kind: linux
+    # реализация внешней сети
+    internet:
+      image: ilyakharev/graduate-lab:internet
+      kind: linux
+    # потенциально атакующий
+    atacker:
+      image: ilyakharev/graduate-lab:atacker
+      kind: linux
+    # администратор
+    administator:
+      image: ilyakharev/graduate-lab:admin
+      kind: linux
+  links:
+    - endpoints: ["firewall:eth1", "internet:eth1"]
+    - endpoints: ["firewall:eth2", "victim:eth1"]
+    - endpoints: ["administator:eth1", "internet:eth2"]
+    - endpoints: ["atacker:eth1", "internet:eth3"]
