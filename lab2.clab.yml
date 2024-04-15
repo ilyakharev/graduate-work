@@ -1,0 +1,27 @@
+name: lab2
+
+topology:
+  nodes:
+    # МСЭ, которым мы управляем
+    firewall:
+      image: wbitt/network-multitool:alpine-extra
+      kind: linux
+      exec:
+        - ip addr add 10.0.1.1/24 dev eth1
+        - ip addr add 10.0.2.1/24 dev eth2
+    # реализация внешней сети
+    internet:
+      image: wbitt/network-multitool:alpine-extra
+      kind: linux
+      exec:
+        - ip addr add 10.0.2.2/24 dev eth1
+        - ip r a 10.0.1.0/24 via 10.0.2.1
+    server:
+      image: wbitt/network-multitool:alpine-extra
+      kind: linux
+      exec:
+        - ip addr add 10.0.1.2/24 dev eth1
+        - ip r a 10.0.2.0/24 via 10.0.1.1
+  links:
+    - endpoints: ["firewall:eth2", "internet:eth1"]
+    - endpoints: ["firewall:eth1", "server:eth1"]

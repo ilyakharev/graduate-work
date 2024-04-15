@@ -4,24 +4,45 @@ topology:
   nodes:
     # сервер, который нету защищать
     victim:
-      image: ilyakharev/graduate-lab:victim
+      image: wbitt/network-multitool:alpine-extra
       kind: linux
+      exec:
+        - ip addr add 2.2.1.21/24 dev eth1
     # МСЭ, которым мы управляем
     firewall:
-      image: ilyakharev/graduate-lab:firewall
+      image: wbitt/network-multitool:alpine-extra
       kind: linux
+      exec:
+        - ip addr add 2.2.2.31/24 dev eth1
+        - ip addr add 2.2.1.32/24 dev eth2
+
     # реализация внешней сети
     internet:
-      image: ilyakharev/graduate-lab:internet
+      image: wbitt/network-multitool:alpine-extra
       kind: linux
+      exec:
+        - ip addr add 2.2.2.41/24 dev eth1
+        - ip addr add 2.2.3.42/24 dev eth2
+        - ip addr add 2.2.4.43/24 dev eth3
+        - ip r a 2.2.1.0/24 via 2.2.2.31
     # потенциально атакующий
     atacker:
-      image: ilyakharev/graduate-lab:atacker
+      image: wbitt/network-multitool:alpine-extra
       kind: linux
+      exec:
+        - ip addr add 2.2.4.51/24 dev eth1
+        - ip r a 2.2.3.0/24 via 2.2.4.43
+        - ip r a 2.2.2.0/24 via 2.2.4.43
+        - ip r a 2.2.1.0/24 via 2.2.4.43
     # администратор
     administator:
-      image: ilyakharev/graduate-lab:admin
+      image: wbitt/network-multitool:alpine-extra
       kind: linux
+      exec:
+        - ip addr add 2.2.3.61/24 dev eth1
+        - ip r a 2.2.4.0/24 via 2.2.3.42
+        - ip r a 2.2.2.0/24 via 2.2.3.42
+        - ip r a 2.2.1.0/24 via 2.2.3.42
   links:
     - endpoints: ["firewall:eth1", "internet:eth1"]
     - endpoints: ["firewall:eth2", "victim:eth1"]
