@@ -41,7 +41,7 @@ topology:
         - ip addr add 2.2.4.51/24 dev eth1
         - ip r a 2.2.3.0/24 via 2.2.4.43
         - ip r a 2.2.2.0/24 via 2.2.4.43
-        # - ip r a 2.2.1.0/24 via 2.2.4.43
+        - ip r a 2.2.1.0/24 via 2.2.4.43
     # администратор
     administator:
       image: wbitt/network-multitool:alpine-extra
