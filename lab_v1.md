@@ -27,6 +27,67 @@ $ curl -sL https://get.containerlab.dev | sudo bash
 Конфигурационный файл должен быть назван `lab.clab.yml`:
 
 [Файл конфигурации](./lab.clab.yml)
+```yaml
+name: lab
+
+topology:
+  nodes:
+    # сервер, который нету защищать
+    victim:
+      image: wbitt/network-multitool:alpine-extra
+      kind: linux
+      exec:
+        - ip addr add 2.2.1.21/24 dev eth1
+        - ip r a 2.2.2.0/24 via 2.2.1.32
+        - ip r a 2.2.3.0/24 via 2.2.1.32
+        - ip r a 2.2.4.0/24 via 2.2.1.32
+    # МСЭ, которым мы управляем
+    firewall:
+      # image: wbitt/network-multitool:alpine-extra
+      image: vrnetlab/vr-routeros:6.47.9
+      kind: linux
+      exec:
+        - ip addr add 2.2.2.31/24 dev eth1
+        - ip addr add 2.2.1.32/24 dev eth2
+        - ip r a 2.2.4.0/24 via 2.2.2.41
+        - ip r a 2.2.3.0/24 via 2.2.2.41
+        - ip r a 2.2.1.21 dev eth2
+
+    # реализация внешней сети
+    internet:
+      image: wbitt/network-multitool:alpine-extra
+      kind: linux
+      exec:
+        - ip addr add 2.2.2.41/24 dev eth1
+        - ip addr add 2.2.3.42/24 dev eth2
+        - ip addr add 2.2.4.43/24 dev eth3
+        - ip r add 2.2.1.0/24 via 2.2.2.31
+        # - ip r a 2.2.1.0/24 dev eth1
+        # - ip r a 2.2.2.31/32 via 2.2.2.41
+    # потенциально атакующий
+    atacker:
+      image: wbitt/network-multitool:alpine-extra
+      kind: linux
+      exec:
+        - ip addr add 2.2.4.51/24 dev eth1
+        - ip r a 2.2.3.0/24 via 2.2.4.43
+        - ip r a 2.2.2.0/24 via 2.2.4.43
+        - ip r a 2.2.1.0/24 via 2.2.4.43
+    # администратор
+    administator:
+      image: wbitt/network-multitool:alpine-extra
+      kind: linux
+      exec:
+        - ip addr add 2.2.3.61/24 dev eth1
+        - ip r a 2.2.4.0/24 via 2.2.3.42
+        - ip r a 2.2.2.0/24 via 2.2.3.42
+        - ip r a 2.2.1.0/24 via 2.2.3.42
+  links:
+    - endpoints: ["firewall:eth1", "internet:eth1"]
+    - endpoints: ["firewall:eth2", "victim:eth1"]
+    - endpoints: ["administator:eth1", "internet:eth2"]
+    - endpoints: ["atacker:eth1", "internet:eth3"]
+```
 
 ### Запуск стенда
 Необходимо вызвать команду:
@@ -48,18 +109,46 @@ $ containerlab deploy
 
 ## Выполнение лабораторной работы
 
+Для добавления правил в МСЭ необходимо нажать на `IP -> Firewall`.
+![image](https://github.com/ilyakharev/graduate-work/assets/38153753/dd745cde-fd93-480f-bd47-abb9bb9972dd)
+Затем нажать `Add New`, ввести необходимые поля и нажать `OK`.
+
 1. пользователей, кроме администратора, был доступен толь порт 80
 ```bash
 iptables  -A FORWARD  -s 2.2.3.61/24  -j ACCEPT
 iptables  -A FORWARD  --protocol tcp --dst 2.2.1.21/24 --dport 80 --jump ACCEPT
 iptables  -A FORWARD  -d 2.2.1.21/24  -j DROP
 ```
+![image](https://github.com/ilyakharev/graduate-work/assets/38153753/5112bc7b-768b-4562-89e3-2844805d7c81)
+![image](https://github.com/ilyakharev/graduate-work/assets/38153753/dbff8945-9195-4c51-9a71-9474b89ccc10)
+![image](https://github.com/ilyakharev/graduate-work/assets/38153753/85d19c8f-77aa-499c-9340-aab42c4cff86)
+
+А так же добавить
+
+![image](https://github.com/ilyakharev/graduate-work/assets/38153753/85897893-4863-41e1-8856-5a633fb0a380)
+
 2. Для избежания флуд атаки, необходимо ограничить количество пакетов, посылаемых на сервер;
 ```bash
-iptables -A INPUT -m limit --limit 3/min -j ACCEPT
+iptables -A INPUT -m limit --limit 3/sec -j ACCEPT
 ```
+![image](https://github.com/ilyakharev/graduate-work/assets/38153753/f5a23b2d-6933-4cf5-ad5e-4d256645fe8b)
+
 3. Запретить пакеты с определенным payload
 ```bash
-iptables  -A FORWARD  -m search --algo kmp --hex-string "block-payload"  -j ACCEPT
+iptables  -A FORWARD  -m search --algo kmp --hex-string "block-payload"  -j DROP
 ```
+![image](https://github.com/ilyakharev/graduate-work/assets/38153753/f827ee6f-a96d-4fd8-aa12-5397b94e0afa)
+
 4. Запретить фрагментацию пакетов
+
+В результате должен появиться такой список
+
+![image](https://github.com/ilyakharev/graduate-work/assets/38153753/cdf73331-6662-4fd3-8184-d41f18bfa4a6)
+
+Перейти на сайт и начать тест
+
+![image](https://github.com/ilyakharev/graduate-work/assets/38153753/6ee89b01-5a94-4dac-be6a-a806a7577bb4)
+
+В результате должно быть
+
+![image](https://github.com/ilyakharev/graduate-work/assets/38153753/5ad5609a-3730-40ad-bee1-6a054e4ca1e1)
