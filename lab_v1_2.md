@@ -56,7 +56,8 @@ iptables  -A FORWARD  --protocol tcp -d 2.2.1.21/24  -j DROP
 ```
 2. Для избежания флуд атаки, необходимо ограничить количество пакетов, посылаемых на сервер;
 ```bash
-iptables -A INPUT --protocol icmp -m limit --limit 3/sec -j ACCEPT
+iptables -A FORWARD --protocol icmp -m limit --limit 3/sec -j ACCEPT
+iptables -A FORWARD --protocol icmp -j DROP
 ```
 3. Запретить пакеты с определенным payload
 ```bash
