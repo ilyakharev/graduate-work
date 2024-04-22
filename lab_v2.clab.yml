@@ -4,7 +4,8 @@ topology:
   nodes:
     # сервер, который нету защищать
     victim:
-      image: kharev
+      image: iakharev/lab:victim
+      # image: kharev
 #      image: ilyakharev.cr.cloud.ru/lab:victim
       kind: linux
       exec:
@@ -16,8 +17,9 @@ topology:
         - data:/data
     # МСЭ, которым мы управляем
     firewall:
-      image: wbitt/network-multitool:alpine-extra
+      # image: wbitt/network-multitool:alpine-extra
       # image: vrnetlab/vr-routeros:6.47.9
+      image: iakharev/lab:firewall
       kind: linux
       exec:
         - ip addr add 2.2.2.31/24 dev eth1
