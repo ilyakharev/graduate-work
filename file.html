@@ -1,0 +1,58 @@
+<html>
+    <body>
+        <table>
+            <tr>
+                <th>Протокол</th>
+                <td>
+                    <select>
+                        <option>Any</option>
+                        <option>ICMP</option>
+                        <option>TCP</option>
+                        <option>UDP</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <th>Входящий адрес</th>
+                <td><input type="text"></td>
+            </tr>
+            <tr>
+                <th>Порт получателя</th>
+                <td><input type="number"></td>
+            </tr>
+            <tr>
+                <th>Лимит</th>
+                <td>
+                    <input type="checkbox">
+                    <input type="number">/sec
+                </td>
+            </tr>
+            <tr>
+                <th>Payload</th>
+                <td>
+                    <input type="checkbox"><input type="text">
+                </td>
+            </tr>
+            <tr>
+                <th>Действие</th>
+                <td>
+                    <select>
+                        <option>Accept</option>
+                        <option>Drop</option>
+                    </select>
+                </td>
+            </tr>
+        </table>
+        <table>
+            <tr>
+                <th></th>
+                <th>Действие</th>
+                <th>Протокол</th>
+                <th>Входящий адрес</th>
+                <th>Порт получателя</th>
+                <th>Лимит</th>
+                <th>Полезная нагрузка</th>
+            </tr>
+        </table>
+    </body>
+</html>

@@ -4,9 +4,8 @@ topology:
   nodes:
     # сервер, который нету защищать
     victim:
+      mgmt-ipv4: 172.20.20.3
       image: iakharev/lab:victim
-      # image: kharev
-#      image: ilyakharev.cr.cloud.ru/lab:victim
       kind: linux
       exec:
         - ip addr add 2.2.1.21/24 dev eth1
@@ -15,10 +14,12 @@ topology:
         - ip r a 2.2.4.0/24 via 2.2.1.32
       binds:
         - data:/data
+      ports:
+        - 3000:3000/tcp
+        - 2112:2112/tcp
     # МСЭ, которым мы управляем
     firewall:
-      # image: wbitt/network-multitool:alpine-extra
-      # image: vrnetlab/vr-routeros:6.47.9
+      mgmt-ipv4: 172.20.20.4
       image: iakharev/lab:firewall
       kind: linux
       exec:
@@ -27,7 +28,8 @@ topology:
         - ip r a 2.2.4.0/24 via 2.2.2.41
         - ip r a 2.2.3.0/24 via 2.2.2.41
         - ip r a 2.2.1.21 dev eth2
-
+      ports:
+        - 80:80/tcp
     # реализация внешней сети
     internet:
       image: wbitt/network-multitool:alpine-extra
@@ -37,8 +39,6 @@ topology:
         - ip addr add 2.2.3.42/24 dev eth2
         - ip addr add 2.2.4.43/24 dev eth3
         - ip r add 2.2.1.0/24 via 2.2.2.31
-        # - ip r a 2.2.1.0/24 dev eth1
-        # - ip r a 2.2.2.31/32 via 2.2.2.41
     # потенциально атакующий
     atacker:
       image: wbitt/network-multitool:alpine-extra
